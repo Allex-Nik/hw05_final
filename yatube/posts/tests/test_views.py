@@ -9,7 +9,7 @@ from django.urls import reverse
 from django import forms
 from django.core.cache import cache
 
-from ..models import Post, Group, Follow
+from ..models import Post, Group
 
 User = get_user_model()
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)

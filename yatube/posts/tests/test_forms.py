@@ -1,8 +1,6 @@
 import shutil
 import tempfile
 
-from http import HTTPStatus
-
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
@@ -116,7 +114,7 @@ class CommentFormTests(TestCase):
         form_data = {
             'text': 'Коммент'
         }
-        response = self.authorized_client.post(reverse(
+        self.authorized_client.post(reverse(
             'posts:add_comment', args={self.post.id}),
             data=form_data,
         )

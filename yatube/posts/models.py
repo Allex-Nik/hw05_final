@@ -63,7 +63,8 @@ class Comment(models.Model):
         related_name='comments',
         verbose_name='Автор'
     )
-    text = models.TextField('Текст комментария', help_text='Введите текст комментария')
+    text = models.TextField('Текст комментария',
+                            help_text='Введите текст комментария')
     created = models.DateTimeField('Дата публикации', auto_now_add=True)
 
     class Meta:
