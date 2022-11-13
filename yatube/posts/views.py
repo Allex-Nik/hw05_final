@@ -29,10 +29,14 @@ def profile(request, username):
     author = get_object_or_404(User, username=username)
     post_list = author.posts.all()
     page_obj = paginate_page(request, post_list)
-    is_follower = Follow.objects.filter(user=request.user, author=author)
-    following = False
-    if is_follower.exists():
-        following = True
+    if request.user.is_authenticated:
+        is_follower = Follow.objects.filter(user=request.user, author=author)
+        following = False
+        if is_follower.exists():
+            following = True
+    else:
+        redirect('posts/profile.html', username=author.username)
+        following = False
     context = {
         'author': author,
         'page_obj': page_obj,
@@ -102,12 +106,11 @@ def add_comment(request, post_id):
 
 @login_required
 def follow_index(request):
-    author = request.user
-    post_list = Post.objects.filter(author=request.user)
+    post_list = Post.objects.filter(author__following__user=request.user)
     page_obj = paginate_page(request, post_list)
     context = {
         'page_obj': page_obj,
-        'author': author,
+        'following': True,
     }
     return render(request, 'posts/follow.html', context)
 
