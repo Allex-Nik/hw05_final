@@ -137,9 +137,9 @@ class PostURLTests(TestCase):
             reverse('posts:follow_index')
         )
         self.assertEqual(
-            len(response_following.context['page_obj']), 0)
+            len(response_following.context['page_obj']), 2)
         response_author = self.authorized_client.get(
             reverse('posts:follow_index')
         )
         self.assertEqual(
-            len(response_author.context['page_obj']), 2)
+            len(response_author.context['page_obj']), 0)
