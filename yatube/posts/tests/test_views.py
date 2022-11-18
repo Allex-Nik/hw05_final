@@ -142,7 +142,7 @@ class PostViewsTests(TestCase):
 
     def test_post_detail_page_shows_correct_context(self):
         response = self.authorized_client.get(
-            reverse('posts:post_detail', kwargs={'post_id': '1'}))
+            reverse('posts:post_detail', kwargs={'post_id': self.posts[11].id}))
         self.assertEqual(
             response.context['post'].author, self.user)
         self.assertEqual(
@@ -150,7 +150,7 @@ class PostViewsTests(TestCase):
         self.assertEqual(
             response.context['post'].group, self.group)
         self.assertEqual(
-            response.context['post'].id, int(self.posts[1].id))
+            response.context['post'].id, int(self.posts[11].id))
         self.assertTrue(
             Post.objects.filter(
                 text=self.posts[11].text,
@@ -160,7 +160,7 @@ class PostViewsTests(TestCase):
 
     def test_post_edit_page_shows_correct_context(self):
         response = self.authorized_client.get(
-            reverse('posts:post_edit', kwargs={'post_id': '1'}))
+            reverse('posts:post_edit', kwargs={'post_id': self.posts[11].id}))
         form_fields = {
             'text': forms.fields.CharField,
             'group': forms.fields.ChoiceField,
