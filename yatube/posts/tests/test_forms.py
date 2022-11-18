@@ -71,9 +71,9 @@ class PostFormTests(TestCase):
         self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertTrue(
             Post.objects.filter(
-                text='Тестовый пост',
+                text=form_data['text'],
                 author=self.user,
-                image='posts/forest.jpg'
+                image=f'posts/{uploaded.name}'
             ).exists())
 
     def test_post_edit_form(self):
@@ -118,10 +118,9 @@ class CommentFormTests(TestCase):
             'posts:add_comment', args={self.post.id}),
             data=form_data,
         )
-        # self.assertEqual(response.status_code, HTTPStatus.OK)
-        Comment.objects.get(text='Коммент')
+        Comment.objects.get(text=form_data['text'])
         self.assertTrue(
             Comment.objects.filter(
-                text='Коммент',
+                text=form_data['text'],
             ).exists())
         self.assertEqual(Comment.objects.count(), self.comments_count + 1)

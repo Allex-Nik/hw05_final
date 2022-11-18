@@ -9,7 +9,7 @@ from django.urls import reverse
 from django import forms
 from django.core.cache import cache
 
-from ..models import Post, Group
+from ..models import Post, Group, Follow
 
 User = get_user_model()
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
@@ -35,6 +35,7 @@ class PostViewsTests(TestCase):
             content_type='image/gif'
         )
         cls.user = User.objects.create_user(username='lev')
+        cls.user_following = User.objects.create_user(username='test')
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test-slug',
@@ -69,6 +70,8 @@ class PostViewsTests(TestCase):
     def setUp(self):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        self.following_client = Client()
+        self.following_client.force_login(self.user_following)
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -92,9 +95,9 @@ class PostViewsTests(TestCase):
         self.assertEqual(post_image, self.posts[11].image)
         self.assertTrue(
             Post.objects.filter(
-                text='Тестовый пост',
+                text=self.posts[11].text,
                 author=self.user,
-                image='posts/forest.jpg'
+                image=f'posts/forest.jpg'
             ).exists())
         self.assertEqual(len(response.context['page_obj']), 10)
 
@@ -112,7 +115,7 @@ class PostViewsTests(TestCase):
         self.assertEqual(post_group, self.group)
         self.assertTrue(
             Post.objects.filter(
-                text='Тестовый пост',
+                text=self.posts[11].text,
                 author=self.user,
                 image='posts/forest.jpg'
             ).exists())
@@ -131,7 +134,7 @@ class PostViewsTests(TestCase):
         self.assertEqual(post_group, self.group)
         self.assertTrue(
             Post.objects.filter(
-                text='Тестовый пост',
+                text=self.posts[11].text,
                 author=self.user,
                 image='posts/forest.jpg'
             ).exists())
@@ -150,7 +153,7 @@ class PostViewsTests(TestCase):
             response.context['post'].id, int(self.posts[1].id))
         self.assertTrue(
             Post.objects.filter(
-                text='Тестовый пост',
+                text=self.posts[11].text,
                 author=self.user,
                 image='posts/forest.jpg'
             ).exists())
@@ -229,6 +232,25 @@ class PostViewsTests(TestCase):
         )
         response3 = response.content
         self.assertNotEqual(response1, response3)
+
+    def test_post_for_followers(self):
+        Post.objects.create(
+            author=self.user,
+            text='Пост',
+        )
+        Follow.objects.create(
+            user=self.user_following, author=self.user
+        )
+        response_following = self.following_client.get(
+            reverse('posts:follow_index')
+        )
+        self.assertEqual(
+            len(response_following.context['page_obj']), 10)
+        response_author = self.authorized_client.get(
+            reverse('posts:follow_index')
+        )
+        self.assertEqual(
+            len(response_author.context['page_obj']), 0)
 
 
 class PaginatorViewsTest(TestCase):

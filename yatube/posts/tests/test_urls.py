@@ -3,7 +3,6 @@ from http import HTTPStatus
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.core.cache import cache
-from django.urls import reverse
 
 from ..models import Post, Group, Follow
 
@@ -26,7 +25,6 @@ class PostURLTests(TestCase):
             author=cls.user,
             text='Тестовый пост',
             group=cls.group,
-            id=1
         )
         cls.post_url = f'/posts/{cls.post.id}/'
         cls.post_create_url = '/create/'
@@ -42,6 +40,8 @@ class PostURLTests(TestCase):
         self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        self.following_client = Client()
+        self.following_client.force_login(self.user_following)
 
     def test_pages_url_exists_at_desired_location(self):
         """Страницы доступны любому пользователю."""
@@ -104,42 +104,21 @@ class PostURLTests(TestCase):
                 response = self.authorized_client.get(url)
                 self.assertTemplateUsed(response, template)
 
-    def test_follow_unfollow(self):
-        self.following_client = Client()
-        self.following_client.force_login(self.user_following)
+    def test_follow(self):
         follows_count = Follow.objects.count()
         response = self.following_client.get(
             f'/profile/{self.user.username}/follow/')
-        Follow.objects.get(
-            user=self.user_following,
-            author=self.user)
         self.assertEqual(Follow.objects.count(), follows_count + 1)
         self.assertTrue(Follow.objects.filter(
             user=self.user_following,
             author=self.user).exists())
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_unfollow(self):
+        self.following_client.get(
+            f'/profile/{self.user.username}/follow/')
+        follows_count = Follow.objects.count()
         response = self.following_client.get(
             f'/profile/{self.user.username}/unfollow/')
-        self.assertEqual(Follow.objects.count(), follows_count)
+        self.assertEqual(Follow.objects.count(), follows_count - 1)
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
-
-    def test_post_for_followers(self):
-        self.following_client = Client()
-        self.following_client.force_login(self.user_following)
-        Post.objects.create(
-            author=self.user,
-            text='Пост',
-        )
-        Follow.objects.create(
-            user=self.user_following, author=self.user
-        )
-        response_following = self.following_client.get(
-            reverse('posts:follow_index')
-        )
-        self.assertEqual(
-            len(response_following.context['page_obj']), 2)
-        response_author = self.authorized_client.get(
-            reverse('posts:follow_index')
-        )
-        self.assertEqual(
-            len(response_author.context['page_obj']), 0)
