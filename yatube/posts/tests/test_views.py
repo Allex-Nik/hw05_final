@@ -142,7 +142,8 @@ class PostViewsTests(TestCase):
 
     def test_post_detail_page_shows_correct_context(self):
         response = self.authorized_client.get(
-            reverse('posts:post_detail', kwargs={'post_id': self.posts[11].id}))
+            reverse('posts:post_detail',
+                    kwargs={'post_id': self.posts[11].id}))
         self.assertEqual(
             response.context['post'].author, self.user)
         self.assertEqual(
