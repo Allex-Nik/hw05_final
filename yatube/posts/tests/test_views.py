@@ -97,7 +97,7 @@ class PostViewsTests(TestCase):
             Post.objects.filter(
                 text=self.posts[11].text,
                 author=self.user,
-                image=f'posts/forest.jpg'
+                image='posts/forest.jpg'
             ).exists())
         self.assertEqual(len(response.context['page_obj']), 10)
 
